@@ -1,7 +1,7 @@
 
 /* HEADER */
 
-header {width: 1000px; height: 160px; margin: 0 auto; position: relative; background: url('../images/logo.png') no-repeat left top}
+header {width: 1000px; height: 160px; margin: 0 auto; position: relative; background: url('../images/logo.gif') no-repeat left top}
 
  header h3 {float: right; margin: 20px; color: #632406}
  header h3 a, header h3 a:visited {color: #e4650f}

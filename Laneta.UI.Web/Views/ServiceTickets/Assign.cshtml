@@ -1,6 +1,7 @@
 ﻿@model Laneta.Web.ViewModels.AssignViewModel
 
-<h1>Available technicians <em>near 98052</em></h1>
+<h2> Assign ticket <b> @Model.ServiceTicket.Title</b> to </h2>
+<h3> available employees: </h3>
 
 <div class="loading" style="">
     <div>
@@ -14,6 +15,8 @@
         <thead>
             <tr>
                 <th class="employee">Employee</th>
+                <!-- TODO: date of week (7 days): each day has a list of events for employee -->
+                <!-- TODO: arrows <left-right> to move between weeks -->
                 <th colspan="2">8:00am</th>
                 <th colspan="2">9:00am</th>
                 <th colspan="2">10:00am</th>
@@ -23,16 +26,25 @@
                 <th colspan="2">2:00pm</th>
                 <th colspan="2">3:00pm</th>
                 <th colspan="2">4:00pm</th>
+                <th colspan="2">5:00pm</th>
+                <th colspan="2">6:00pm</th>
+                <th colspan="2">7:00pm</th>
+                <th colspan="2">8:00pm</th>
             </tr>
         </thead>
-        @foreach (var item in Model.AvailableEmployees)
+        @foreach (var employee in Model.AvailableEmployees)
         {
-            var startTime = DateTime.ParseExact("Mon 16 May 8:00 AM 2011", "ddd dd MMM h:mm tt yyyy", System.Globalization.CultureInfo.InvariantCulture);
-            var endTime = DateTime.ParseExact("Mon 16 May 5:00 PM 2011", "ddd dd MMM h:mm tt yyyy", System.Globalization.CultureInfo.InvariantCulture);
-            var scheduledItems = this.Model.ScheduleItems.Where(i => i.EmployeeID == item.ID).OrderBy(i => i.Start);
+            //TODO: default start - now and duration - 2 hours
+            var startTime = DateTime.Now;
+            var endTime = startTime.AddHours(2);
+                //DateTime.ParseExact("Thu 16 May 5:00 PM 2019", "ddd dd MMM h:mm tt yyyy", System.Globalization.CultureInfo.InvariantCulture);
 
-            <tr rel="@Url.Action("Schedule", new { ServiceTicketID = Model.ServiceTicket.ID, EmployeeID = item.ID })">
-                <td class="employee">@item.FullName</td>
+            var scheduledItems = this.Model.ScheduleItems.Where(i => i.EmployeeID == employee.ID).OrderBy(i => i.Start);
+
+            <tr>
+                <td class="employee" >
+                    <a href="@Url.Action("Schedule", new { ServiceTicketID = Model.ServiceTicket.ID, EmployeeID = employee.ID, StartTime = startTime })">assign to </a> @employee.FullName 
+                </td>
                 @foreach (var scheduleItem in scheduledItems)
                 {
                     TimeSpan diff = (scheduleItem.Start - startTime);
@@ -62,21 +74,15 @@
                 }
             </tr>
         }
-        <tr>
-            <td class="employee">Andre Morito</td>
-            <td class="full" colspan="20">Full Capacity</td>
-        </tr>
-        <tr>
-            <td class="employee">Jhon Hale</td>
-            <td class="full" colspan="20">Full Capacity</td>
-        </tr>
     </table>
 </div>
-
+ 
 <script type="text/javascript">
     $(function () {
         $("div.time-table table td.free").click(function () {
-            var location = $(this).parent().attr('rel') + "&startTime=" + $(this).attr('rel');
+            var location = $(this).parent().attr('rel')
+                + "&startTime="
+                + $(this).attr('rel');
             window.location.href = location;
         });
 

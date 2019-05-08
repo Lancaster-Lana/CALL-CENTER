@@ -1,67 +1,146 @@
 ﻿@model Laneta.Web.ViewModels.ScheduleViewModel
-           
+<!-- Include the plugin's CSS and JS: -->
+
 <link rel='stylesheet' type='text/css' href="@Url.Content("~/Content/fullcalendar.css")" />
 <link rel='stylesheet' type='text/css' href="@Url.Content("~/Content/fullcalendar.print.css")" media='print' />
+<link rel="stylesheet" href="@Url.Content("~/lib/bootstrap/dist/css/bootstrap.css")" />
 
-<script type='text/javascript' src="@Url.Content("~/Scripts/fullcalendar.min.js")"></script>
 @{
     ViewBag.Title = "Schedule";
 }
-<h1>Schedule for @Model.Employee.FullName</h1>
+<h2>Schedule for @Model.Employee?.FullName</h2>
 
-<form action="Schedule-Ticket.aspx" method="post">
+<form action="/ServiceTickets/schedule" method="post">
     <div id='calendar1' class='calendar'></div>
 
-    <input type="hidden" name="startTime" value="@ViewBag.StartTime" id="startTime"/>
-    <input type="hidden" name="employeeId" value="@Model.Employee.ID" id="employeeId"/>
-    <input type="hidden" name="serviceTicketId" value="@Model.ServiceTicket.ID" id="serviceTicketId"/>
-    <br />
+    <input type="hidden" id="employeeId" name="employeeId" value="@Model.Employee?.ID" />
+    <input type="hidden" id="serviceTicketId" name="serviceTicketId" value="@Model.ServiceTicket?.ID" />
 
-    <p>
-        <input type="submit" value="Confirm" class="glossyBox"/>
-    </p>
+    <input type="hidden" id="startDT" name="startDT" value="@ViewBag.StartTime" />
+    <input type="hidden" id="endDT" name="endDT" value="@ViewBag.endTime" />
+    <div class="nav-navbar">
+        <a href="Index" class="btn btn-default">Cancel</a>
+        <input type="submit" id="confirmSchedule" name="confirmSchedule"  value="Confirm" class="btn btn-success" />
+    </div>
 </form>
+
+<script type='text/javascript' src="@Url.Content("~/Scripts/moment.js")"></script>
+<script type='text/javascript' src="@Url.Content("~/Scripts/fullcalendar.min.js")"></script>
 
 <script type="text/javascript">
     $(function () {
-
-        $('#calendar1').fullCalendar({
-            header: { left: '', center: '', right: '' },
+        //Sceduler for the employee
+        var id = $("#employeeId").val();
+        var calendar = $('#calendar1').fullCalendar({
+            schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives', //only for development
+            defaultView: 'agendaWeek',
+            header: {
+                left: 'today,prev,next',
+                center: 'title',
+                right: 'agendaDay,agendaWeek,month'
+            },
+            firstHour: 8,
+            minTime: 8,
+            maxTime: 23,
+            allDaySlot: true,
+            droppable: true,
             contentHeight: 500,
             height: 500,
-            minTime: 8,
-            maxTime: 17,
-            defaultView: 'agendaDay',
-            firstHour: 8,
-            allDaySlot: false,
             editable: true,
-            events: getEventsFor($("#employeeId").val())
+            events: getEventsForEmployee(id),
+            // called when an event (already on the calendar) is moved
+            eventDrop: function (event) {
+                var startDate = event.start != null
+                    ? moment(event.start).format('YYYY-MM-DD HH:mm A') // $.fullCalendar.formatDate(event.start, 'YYYY-MM-DD HH:mm')
+                    : null;
+                var endDate = event.end != null
+                    ? moment(event.end).format('YYYY-MM-DD HH:mm A')
+                    : null;
+                //Update event details : start\end date
+                var idEvent = @Model.ServiceTicket.ID;
+                if (idEvent == event.idEvent) {
+                    $('#startDT').val(startDate);
+                    $('#endDT').val(endDate);
+                    console.log('eventDrop ', event.idEvent);
+                }
+            },
+            eventResize: function (event) {
+                var startDate = moment(event.start).format('YYYY-MM-DD HH:mm A');
+                var endDate = moment(event.end).format('YYYY-MM-DD HH:mm A');
+                //Update event details : start\end date
+                var idEvent = @Model.ServiceTicket.ID;
+                if (idEvent == event.idEvent)
+                {
+                    $('#startDT').val(startDate);
+                    $('#endDT').val(endDate);
+                    console.log('eventResize ', event.idEvent);
+                }
+            },
+            //a new external event is dropped to calendar
+            eventReceive: function (event)
+            {
+                var eventName = event.title;
+                var startDate = event.start.toISOString(); //.new Date( start.toLocaleDateString("en-US", options))/ event.start.toJSON(); //Date.parse
+                var endDate = startDate;
+            },
+
+            eventClick: function (event)
+            {
+                var startDate = event.start != null
+                    ? moment(event.start).format('YYYY-MM-DD HH:mm A') //:ss.SSSZ $.fullCalendar.formatDate(event.start, 'YYYY-MM-DD HH:mm')
+                    : null;
+                var endDate = event.end != null
+                    ? $.fullCalendar.formatDate(event.end, 'YYYY-MM-DD HH:mm')
+                    : null;
+            },
+
+            success: function () {
+ 
+            }
+        });
+
+        //Attach handler to 'Confirm' scheduling the ticket
+        $('#confirmSchedule').click(function () {
+            var idEvent = @Model.ServiceTicket.ID;
+            // Find event after adding to the calendar
+            var eventoObj = calendar.getEventById(idEvent);//$("#calendar1").fullCalendar('clientEvents', idEvent);
+            alert(eventoObj);
+            //get updated event data
+            var evento_allDay = eventoObj._allDay;
+            var evento_start = eventoObj._start;//event.setStart(start);
+            var evento_end = eventoObj._end;
         });
     });
 
-    function getEventsFor(id) {
+    function getEventsForEmployee(id)
+    {
         var date = new Date();
         var d = date.getDate();
         var m = date.getMonth();
         var y = date.getFullYear();
 
         var events = [];
-            
-    @foreach (var item in Model.ScheduleItems.OrderBy(i => i.Start)){
-        @Html.Raw(string.Format("events.push({{ title: '[{0}] {1}', start: new Date(y, m, d, {2}, {3}), end: new Date(y, m, d, {4}, {5}), allDay: false }});", string.Format("A0141{0:d2}", item.ServiceTicket.ID), item.ServiceTicket.Title, item.Start.Hour, item.Start.Minute, (item.Start.AddHours(item.WorkHours)).Hour, (item.Start.AddHours(item.WorkHours)).Minute));   
-    }
 
-        var startTime = $("#startTime").val();
-        var startTimeHour = parseInt(startTime, 10);
+        @foreach (var item in Model.ScheduleItems.OrderBy(i => i.Start)){
+            @Html.Raw(string.Format("events.push({{ title: '[{0}] {1}', start: new Date(y, m, d, {2}, {3}), end: new Date(y, m, d, {4}, {5}), allDay: false }});", string.Format("A0141{0:d2}", item.ServiceTicket.ID), item.ServiceTicket.Title, item.Start.Hour, item.Start.Minute, (item.Start.AddHours(item.WorkHours)).Hour, (item.Start.AddHours(item.WorkHours)).Minute));
+        }
+
+        var startTime = $("#startDT").val();
+        var startTimeHour = 10; //parseInt(startTime, 10); //default
         var startTimeMinute = (startTime % 1 == 0) ? 0 : 30;
 
-        events.push({
+        var idEvent = @Model.ServiceTicket.ID;
+
+        var currentEvent = {
+            idEvent: idEvent,
             title: '@string.Format("[A0141{0:d2}] {1}", Model.ServiceTicket.ID, Model.ServiceTicket.Title)',
             start: new Date(y, m, d, startTimeHour, startTimeMinute),
             end: new Date(y, m, d, startTimeHour + 1, startTimeMinute),
             allDay: false,
             backgroundColor: 'red'
-        });
+        }
+        events.push(currentEvent);
+
         return events;
     }
 

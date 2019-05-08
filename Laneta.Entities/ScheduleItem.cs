@@ -12,10 +12,10 @@
 
         public ServiceTicket ServiceTicket { get; set; }
 
+        public DateTime? AssignedOn { get; set; }
+
         public DateTime Start { get; set; }
 
         public int WorkHours { get; set; }
-
-        public DateTime? AssignedOn { get; set; }
     }
 }

@@ -21,14 +21,16 @@
 
     @foreach (var item in Model)
     {
-        <tr class="actionrow">
-            <td>@Html.ActionLink(string.Format("A0141{0:d2}", item.ID), "Details", new { id = item.ID })</td>
-            <td>@item.Status</td>
-            <td>Level @item.EscalationLevel</td>
-            <td><div style="width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@item.Title</div></td>
-            <td>@(item.AssignedTo == null ? "None" : item.AssignedTo.FullName)</td>
-            <td>@item.TimeOpen</td>
-        </tr>
+    <tr class="actionrow">
+        <td>@Html.ActionLink(string.Format("A0141{0:d2}", item.ID), "Details", new { id = item.ID })</td>
+        <td>@item.Status</td>
+        <td>Level @item.EscalationLevel</td>
+        <td><div style="width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@item.Title</div></td>
+        <td>
+            <a href="@Url.Action("Schedule", new { ServiceTicketID = item.ID, EmployeeID = item.AssignedTo.ID })"> @(item.AssignedTo == null ? "None" : item.AssignedTo.FullName)</a>
+        </td>
+        <td>@item.TimeOpen</td>
+    </tr>
     }
 </table>
 
