@@ -8,15 +8,15 @@
 
 @using (Html.BeginForm()) {
     @Html.ValidationSummary(true)
-    <fieldset>
-        <legend>Customer</legend>
+<fieldset>
+    <legend>Customer</legend>
 
-		@Html.Partial("_CreateOrEdit", Model)
+    @await Html.PartialAsync("_CreateOrEdit", Model)
 
-        <p>
-            <input type="submit" value="Create" class="glossyBox" />
-        </p>
-    </fieldset>
+    <p>
+        <input type="submit" value="Create" class="glossyBox" />
+    </p>
+</fieldset>
 }
 
 <div>

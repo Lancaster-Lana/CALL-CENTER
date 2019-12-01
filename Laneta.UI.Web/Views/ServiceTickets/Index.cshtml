@@ -27,7 +27,7 @@
         <td>Level @item.EscalationLevel</td>
         <td><div style="width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@item.Title</div></td>
         <td>
-            <a href="@Url.Action("Schedule", new { ServiceTicketID = item.ID, EmployeeID = item.AssignedTo.ID })"> @(item.AssignedTo == null ? "None" : item.AssignedTo.FullName)</a>
+            <a href="@Url.Action("Schedule", new { ServiceTicketID = item.ID, EmployeeID = item.AssignedTo?.ID })"> @(item.AssignedTo == null ? "None" : item.AssignedTo.FullName)</a>
         </td>
         <td>@item.TimeOpen</td>
     </tr>

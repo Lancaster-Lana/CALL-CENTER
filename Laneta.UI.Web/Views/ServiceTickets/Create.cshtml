@@ -11,7 +11,7 @@
     <fieldset>
         <legend>ServiceTicket</legend>
 
-		@Html.Partial("_CreateOrEdit", Model)
+		@await Html.PartialAsync("_CreateOrEdit", Model)
 
         <p>
             <input type="submit" value="Create" class="glossyBox"/>
@@ -22,5 +22,3 @@
 <div>
     @Html.ActionLink("Back to List", "Index")
 </div>
-
-

@@ -4,22 +4,22 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace Laneta.EntityFramework
 {
-    public class DBContextFactory : IDesignTimeDbContextFactory<AppDBContext>
-    {
-        /// <summary>
-        /// TODO: from config 
-        /// </summary>
-        const string connectionString = //GlobalProperties.
-            "Server=.;Database=CallCenterDB2;Trusted_Connection=True;MultipleActiveResultSets=true";
+    //public class DBContextFactory : IDesignTimeDbContextFactory<AppDBContext>
+    //{
+    //    /// <summary>
+    //    /// TODO: from config 
+    //    /// </summary>
+    //    const string connectionString = //GlobalProperties.
+    //        "Server=.;Database=CallCenterDB2;Trusted_Connection=True;MultipleActiveResultSets=true";
 
-        public AppDBContext CreateDbContext(string[] args)
-        {
-            var optionsBuilder = new DbContextOptionsBuilder<AppDBContext>();
-            optionsBuilder.UseSqlServer(connectionString);
+    //    public AppDBContext CreateDbContext(string[] args)
+    //    {
+    //        var optionsBuilder = new DbContextOptionsBuilder<AppDBContext>();
+    //        optionsBuilder.UseSqlServer(connectionString);
 
-            return new AppDBContext(optionsBuilder.Options);
-        }
-    }
+    //        return new AppDBContext(optionsBuilder.Options);
+    //    }
+    //}
 
     public class AppDBContext : DbContext
     {

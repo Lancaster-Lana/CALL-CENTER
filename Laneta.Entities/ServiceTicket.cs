@@ -26,10 +26,12 @@
         public DateTime? Opened { get; set; }
 
         public DateTime? Closed { get; set; }
-        
-        public Customer Customer { get; set; }
 
-        public int? CustomerID { get; set; }
+        /// <summary>
+        /// Who assigned
+        /// </summary>
+        public int? CustomerID { get; set; }       
+        public Customer Customer { get; set; }
 
         [DisplayName("Created By")]
         public Employee CreatedBy { get; set; }

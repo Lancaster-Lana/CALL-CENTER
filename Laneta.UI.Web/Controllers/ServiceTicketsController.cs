@@ -8,6 +8,7 @@ namespace Laneta.Web.Controllers
     using Laneta.Entities;
     using Laneta.EntityFramework;
 
+    [Route("[controller]/[action]")]
     public class ServiceTicketsController : Controller
     {
         private readonly ICustomerRepository customerRepository;
@@ -78,9 +79,63 @@ namespace Laneta.Web.Controllers
             return View(viewModel);
         }
 
+        /// <summary>
+        /// Reschedule tickets for employee
+        /// </summary>
+        /// <param name="employeeId"></param>
+        /// <param name="tickets"></param>
+        /// <returns></returns>
+        [HttpPut]//("{employeeId}")]
+        [Route("{employeeId}")]
+        public ActionResult Reschedule(int employeeId, [FromBody]ScheduleItem[] tasks)
+        {
+            //this.scheduleItemRepository.All.Where(e => e.ServiceTicketID == serviceTicketId)
+            //                               .ToList()
+            //                               .ForEach(e => this.scheduleItemRepository.Delete(e.ID));
+
+            //TODO: save resceduled tickets in DB
+            foreach (var task in tasks)
+            {                
+                //scheduleItem.AssignedOn = DateTime.Now;
+                task.EmployeeID = employeeId; //scheduleItem.ServiceTicket.AssignedToID = employeeId;
+
+                //Calculate work hours for task
+                var startDT = task.Start;
+                var startAtTime = startDT.TimeOfDay;//DateTime.Parse(startDT, "ddd dd MMM h:mm tt yyyy", System.Globalization.CultureInfo.InvariantCulture);
+
+                var endDT = task.End;
+                var endAtTime = endDT?.TimeOfDay;//DateTime.ParseExact(endDT, "ddd dd MMM h:mm tt yyyy", System.Globalization.CultureInfo.InvariantCulture);
+
+                double? durationHours = endAtTime?.Subtract(startAtTime).Hours;
+
+                //if task for one day
+                if (startDT.Date < endDT?.Date && endDT != null)
+                {
+                    var days = endDT?.Date.Subtract(startDT.Date).TotalDays;
+                    //add total days
+                    durationHours += days * 8;//endAt.Subtract(startAt).Hours;
+                }
+
+                task.WorkHours = (int)durationHours;//scheduleItem.WorkHours;
+                //scheduleItem.ServiceTicket.Status = Status.Assigned;
+
+                this.scheduleItemRepository.InsertOrUpdate(task);
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        /// <summary>
+        /// Assign and schedule new ticket 
+        /// </summary>
+        /// <param name="serviceTicketId"></param>
+        /// <param name="employeeId"></param>
+        /// <param name="startDT"></param>
+        /// <param name="endDT"></param>
+        /// <returns></returns>
         [HttpPost]
-        [ActionName("Schedule")]
-        public ActionResult AssignSchedule(int serviceTicketId, int employeeId, DateTime startDT, DateTime endDT)
+        //[ActionName("Schedule")]
+        public ActionResult Schedule(int serviceTicketId, int employeeId, DateTime startDT, DateTime endDT)
         {
             this.scheduleItemRepository.All.Where(e => e.ServiceTicketID == serviceTicketId)
                                            .ToList()
@@ -113,6 +168,7 @@ namespace Laneta.Web.Controllers
             };
 
             this.scheduleItemRepository.InsertOrUpdate(scheduleItem);
+
             serviceTicket.AssignedToID = employeeId;
             serviceTicket.Status = Status.Assigned;
 

@@ -10,7 +10,7 @@
 }
 <h2>Schedule for @Model.Employee?.FullName</h2>
 
-<form action="/ServiceTickets/schedule" method="post">
+<form action="/ServiceTickets/Reschedule" method="post">
     <div id='calendar1' class='calendar'></div>
 
     <input type="hidden" id="employeeId" name="employeeId" value="@Model.Employee?.ID" />
@@ -20,7 +20,7 @@
     <input type="hidden" id="endDT" name="endDT" value="@ViewBag.endTime" />
     <div class="nav-navbar">
         <a href="Index" class="btn btn-default">Cancel</a>
-        <input type="submit" id="confirmSchedule" name="confirmSchedule"  value="Confirm" class="btn btn-success" />
+        <button id="confirmSchedule" name="confirmSchedule"  value="Confirm" class="btn btn-success" />
     </div>
 </form>
 
@@ -29,8 +29,12 @@
 
 <script type="text/javascript">
     $(function () {
-        //Sceduler for the employee
-        var id = $("#employeeId").val();
+
+      //closure to init calendar once
+      (function () {
+        //Scheduler for the employee
+          var employeeId = $("#employeeId").val();
+
         var calendar = $('#calendar1').fullCalendar({
             schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives', //only for development
             defaultView: 'agendaWeek',
@@ -47,7 +51,7 @@
             contentHeight: 500,
             height: 500,
             editable: true,
-            events: getEventsForEmployee(id),
+            events: getEventsForEmployee(employeeId),
             // called when an event (already on the calendar) is moved
             eventDrop: function (event) {
                 var startDate = event.start != null
@@ -99,18 +103,52 @@
             }
         });
 
-        //Attach handler to 'Confirm' scheduling the ticket
+        //Attach handler to 'Confirm' re-scheduling tickets
         $('#confirmSchedule').click(function () {
             var idEvent = @Model.ServiceTicket.ID;
-            // Find event after adding to the calendar
-            var eventoObj = calendar.getEventById(idEvent);//$("#calendar1").fullCalendar('clientEvents', idEvent);
-            alert(eventoObj);
-            //get updated event data
-            var evento_allDay = eventoObj._allDay;
-            var evento_start = eventoObj._start;//event.setStart(start);
-            var evento_end = eventoObj._end;
+            //TODO: Find tickets for that worker (after adding to the calendar)
+            var clientTickets = $("#calendar1").fullCalendar('clientEvents');//calendar.getEventById(idEvent);
+            var tasksArr = [];
+
+            //get resheduled tickets
+            $(clientTickets).each(function (i, eventoObj)
+            {
+                var event = {
+                    serviceTicketID: idEvent,
+                    employeeId: employeeId, //assignedTo
+                    start: eventoObj._start,
+                    end: eventoObj._end,//workHours :end - start
+                    assignedOn: new Date() //TODO:
+                     
+                    //allDay: eventoObj._allDay,
+                    //title: eventoObj.title,
+                    //description: eventoObj.title,
+                    //closed: eventoObj._end
+                };
+                tasksArr.push(event);
+            });
+
+            //update in DB !!!
+            var resheduleUrl = "/ServiceTickets/Reschedule/" + employeeId;
+            $.ajax({
+                url: resheduleUrl,
+                type: 'put', //headers: { "X-HTTP-Method-Override": "PUT" },
+                contentType: "application/json", //dataType: "json",
+                data: JSON.stringify(tasksArr), //JSON.stringify({ "tasks": ticketsItemsArr });     
+                //headers: {
+                //    'x-auth-token': localStorage.accessToken,
+                //    "Content-Type": "application/json"
+                //},
+                
+                error: function (msg)
+                {
+                    alert(msg);
+                }
+            });
         });
-    });
+       
+     })();
+ });
 
     function getEventsForEmployee(id)
     {
